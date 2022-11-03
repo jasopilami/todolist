@@ -46,7 +46,7 @@ class Task(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     done = Column(bool)
-
+   
     def __repr__(self) -> str:
         return f"<{self.id}, {self.name}, {self.done} >"
 
@@ -121,7 +121,6 @@ def complete_a_task():
     # updaten in der Datenbank
     # committen
      task_to_complete = int(input("id of task to complete?"))
-     id = input("name\t:")
      session.query(Task).filter_by(id = task_to_complete).update({Task.done: True})
      session.commit()
 
@@ -135,8 +134,29 @@ def list_all_tasks():
         table.add_row(str(tasks.id), task.name)
 
     console.print(table)
+    
+def list_completed_task():
+    session.query(Task).filter_by(done = True)
+    session.commit()
+    
+    
+    
+    tasks = database_get_completed_tasks()
+    table = Table(show_header=True, header_style="bold green")
+    table.add_column("ID", style="dim")
+    table.add_column("name")
+    
+    for task in tasks:
+        table.add_row(str(tasks.id), task.name)
 
-def database_add_friend(task: Task):
+    console.print(table)
+    
+def list_uncompleted_task():
+    session.query(Task).filter_by(done = False)
+    session.commit()
+    
+
+def database_add_task(task: Task):
     """
     Database command to add a new task.
     ORM = Object Relational Mapper
@@ -152,6 +172,9 @@ def database_get_all_tasks():
     Alternative to this with raw sql:
     `all_tasks_raw = session.execute("SELECT * FROM tasks;").fetchall()`
     """
+    return session.query(Task).all()
+
+def database_get_completed_tasks():
     return session.query(Task).all()
 
 # # # ###########################################
