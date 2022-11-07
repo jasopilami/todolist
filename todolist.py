@@ -2,25 +2,8 @@ from ast import Delete
 from rich.console import Console
 from rich.table import Table
 
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import declarative_base, sessionmaker
-
-"""
-Datenbank Queries:
-
-C: Create       = `INSERT INTO table VALUES (...);`
-R: Read         = `SELECT * FROM table;`
-U: Update       = `UPDATE table SET colum1 = value1 WHERE condition;`
-D: Delete       = `DELETE FROM table WHERE condition;`
-
-
-Examples:
-
-C:      `INSERT INTO friends (first_name, last_name) VALUES ('Gustav', 'Gans');
-R:      `SELECT * FROM friends;`
-U:      `UPDATE friends SET first_name = 'Dagobert' WHERE id = 4;`
-D:      `DELETE FROM friends WHERE id = 4;`
-"""
 
 # # # ###########################################
 # # Do not touch!
@@ -45,7 +28,7 @@ class Task(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    done = Column(bool)
+    done = Column(Boolean)
    
     def __repr__(self) -> str:
         return f"<{self.id}, {self.name}, {self.done} >"
@@ -71,7 +54,8 @@ def show_menu():
     MENU_TEXT = """
     Menu: 
     - (A)dd new task
-    - (L)ist (C)ompleted task
+    - (AL) tasks
+    - (LI)st completed task
     - (L)ist uncomplete tasks
     - (D)elete a task
     - (C)omplete a task
@@ -96,7 +80,8 @@ def get_users_menu_input():
         list_completed_task()
     elif menu_choice == "L":
         list_uncompleted_task()
-  
+    elif menu_choice == "AL":
+        list_all_tasks()
   # # # ###########################################
 # # # User choices
 # # # ###########################################
@@ -105,7 +90,7 @@ def add_new_task():
     Asks the user for the information about the new task. 
     Adds the task to the database.
     """
-    print("Einen neuen Freund hinzufügen")
+    print("Eine neue task hinzufügen")
     name = input("task\t:")
     new_task = Task(name=name)
     database_add_task(new_task)
@@ -122,6 +107,7 @@ def complete_a_task():
     # committen
      task_to_complete = int(input("id of task to complete?"))
      session.query(Task).filter_by(id = task_to_complete).update({Task.done: True})
+  
      session.commit()
 
 def list_all_tasks():
@@ -131,25 +117,13 @@ def list_all_tasks():
     table.add_column("name")
     
     for task in tasks:
-        table.add_row(str(tasks.id), task.name)
+        table.add_row(str(task.id), task.name)
 
     console.print(table)
     
 def list_completed_task():
     session.query(Task).filter_by(done = True)
     session.commit()
-    
-    
-    
-    tasks = database_get_completed_tasks()
-    table = Table(show_header=True, header_style="bold green")
-    table.add_column("ID", style="dim")
-    table.add_column("name")
-    
-    for task in tasks:
-        table.add_row(str(tasks.id), task.name)
-
-    console.print(table)
     
 def list_uncompleted_task():
     session.query(Task).filter_by(done = False)
@@ -172,9 +146,6 @@ def database_get_all_tasks():
     Alternative to this with raw sql:
     `all_tasks_raw = session.execute("SELECT * FROM tasks;").fetchall()`
     """
-    return session.query(Task).all()
-
-def database_get_completed_tasks():
     return session.query(Task).all()
 
 # # # ###########################################
